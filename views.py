@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 # Importação do models
 from model import *
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 
 def calcular_faturamento_diario(data_inicio=None, data_fim=None):
@@ -220,3 +222,56 @@ def traduzir_dia_semana(dia_ingles):
         "Sunday": "Domingo"
     }
     return dias.get(dia_ingles, dia_ingles)
+
+def prever_faturamento_futuro(data_inicio=None, data_fim=None, dias_futuros=[14, 30]):
+    """
+    Preve o faturamento para os próximos dias usando regressão linear.
+    Retorna um dicionário com as previsões.
+    """
+    df_produtos, df_vendas = tratar_dados()
+
+    # Filtrar por intervalo de datas, se fornecido
+    if data_inicio and data_fim:
+        data_inicio = pd.to_datetime(data_inicio)
+        data_fim = pd.to_datetime(data_fim)
+        df_vendas = df_vendas[(df_vendas['DATA'] >= data_inicio) & (df_vendas['DATA'] <= data_fim)]
+
+    # Agrupar vendas por dia
+    faturamento_diario = df_vendas.groupby(df_vendas['DATA'].dt.date)['VALOR_VENDA'].sum().reset_index()
+    faturamento_diario['DATA'] = pd.to_datetime(faturamento_diario['DATA'])
+
+    # Criar variável numérica para os dias
+    faturamento_diario['DIA'] = (faturamento_diario['DATA'] - faturamento_diario['DATA'].min()).dt.days
+
+    # Preparar dados para a regressão
+    X = faturamento_diario[['DIA']]  # Variável independente (dias)
+    y = faturamento_diario['VALOR_VENDA']  # Variável dependente (faturamento)
+
+    # Ajustar o modelo de regressão linear
+    modelo = LinearRegression()
+    modelo.fit(X, y)
+
+    # Prever para os próximos dias
+    previsoes = {}
+    for dias in dias_futuros:
+        X_futuro = np.array(range(faturamento_diario['DIA'].max() + 1, faturamento_diario['DIA'].max() + 1 + dias)).reshape(-1, 1)
+        y_futuro = modelo.predict(X_futuro)
+        previsoes[f"proximos_{dias}_dias"] = y_futuro.sum()  # Soma do faturamento previsto
+
+    return previsoes
+
+def calcular_faturamento_total(data_inicio=None, data_fim=None):
+    """
+    Calcula o faturamento total no período selecionado.
+    """
+    df_produtos, df_vendas = tratar_dados()
+
+    # Filtrar por intervalo de datas, se fornecido
+    if data_inicio and data_fim:
+        data_inicio = pd.to_datetime(data_inicio)
+        data_fim = pd.to_datetime(data_fim)
+        df_vendas = df_vendas[(df_vendas['DATA'] >= data_inicio) & (df_vendas['DATA'] <= data_fim)]
+
+    # Calcular o faturamento total
+    faturamento_total = df_vendas['VALOR_VENDA'].sum()
+    return faturamento_total

@@ -46,6 +46,20 @@ def main():
         data_fim = st.date_input("Data final", value=data_max, 
                                min_value=data_min, max_value=data_max)
 
+        # Previsão de faturamento futuro
+        st.markdown("---")
+        st.header("🔮 Previsão de Faturamento")
+        if st.button("Calcular Previsão"):
+            previsoes = prever_faturamento_futuro(data_inicio, data_fim, dias_futuros=[14, 30])
+            
+            st.markdown(f"""
+                **Próximos 14 Dias:**
+                - Faturamento Previsto: R$ {previsoes['proximos_14_dias']:,.2f}
+                
+                **Próximos 30 Dias:**
+                - Faturamento Previsto: R$ {previsoes['proximos_30_dias']:,.2f}
+            """)
+             
     # Layout principal usando colunas
     col1, col2 = st.columns([2, 1], gap="medium")
 
@@ -72,6 +86,7 @@ def main():
             melhor_dia, faturamento_melhor, _ = melhor_dia_vendas(data_inicio, data_fim)
             pior_dia, faturamento_pior = pior_dia_vendas(data_inicio, data_fim)
             media_faturamento = calcular_media_faturamento_diario(data_inicio, data_fim)
+            faturamento_total = calcular_faturamento_total(data_inicio, data_fim)  # Novo cálculo
 
             # Layout em duas colunas
             col1, col2 = st.columns(2)
@@ -100,6 +115,11 @@ def main():
                 else:
                     st.warning("Nenhum dado encontrado para o período selecionado.")
 
+            # Faturamento Total
+            st.markdown("---")
+            st.markdown(f"### 💰 Faturamento Total no Período")
+            st.markdown(f"**Total:** R$ {faturamento_total:,.2f}")
+
             # Gráfico de Pizza
             st.markdown("---")
             st.markdown("### 🍕 Distribuição de Faturamento")
@@ -110,7 +130,6 @@ def main():
                 st.caption("Produtos com menos de 3% do faturamento foram agrupados em 'Outros'")
             else:
                 st.warning("Nenhum dado encontrado para o período selecionado.")
-
 
         with tab2:
             # Seleção de produtos dentro da aba de análise
