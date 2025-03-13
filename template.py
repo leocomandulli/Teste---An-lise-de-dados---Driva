@@ -30,6 +30,18 @@ def plotar_faturamento_diario(data_inicio=None, data_fim=None):
     coeficientes = np.polyfit(dias, valores, deg=1)  # Coeficientes da regressão linear
     tendencia = np.polyval(coeficientes, dias)  # Valores da linha de tendência
 
+    # Inclinação da reta (coeficiente angular)
+    inclinacao = coeficientes[0]
+
+    # Calcular a tendência em termos percentuais
+    # Variação percentual = (inclinacao * dias_totais / valor_inicial) * 100
+    dias_totais = dias.max()  # Número total de dias no período
+    valor_inicial = valores.iloc[0]  # Primeiro valor de faturamento
+    tendencia_percentual = (inclinacao * dias_totais / valor_inicial) * 100  # Percentual de variação
+
+    # Exibir o valor da tendência percentual
+    st.write(f"Tendência de variação percentual do faturamento: {tendencia_percentual:.2f}% ao longo do período.")
+
     # Calcular a média móvel (janela de 7 dias)
     window_size = 7  # Tamanho da janela para a média móvel
     media_movel = np.convolve(valores, np.ones(window_size)/window_size, mode='valid')
@@ -67,6 +79,7 @@ def plotar_faturamento_diario(data_inicio=None, data_fim=None):
 
     # Retornar a figura
     return fig
+
 
 
 def plotar_grafico_pizza(ranking):
